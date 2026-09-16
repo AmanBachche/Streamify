@@ -1,34 +1,48 @@
 import { motion } from "motion/react";
 
-// Make sure this name is exactly AeroShards
-export const AeroShards = () => {
+const Shard = ({ delay, duration, size, top, left, rotate }) => (
+  <motion.div
+    className="absolute bg-gradient-to-br from-primary/20 to-secondary/10 border border-white/10 backdrop-blur-[2px]"
+    style={{
+      width: size,
+      height: 2,
+      top: `${top}%`,
+      left: `${left}%`,
+      rotate: `${rotate}deg`,
+    }}
+    animate={{
+      y: [0, -40, 0],
+      opacity: [0.1, 0.4, 0.1],
+      scale: [1, 1.1, 1],
+    }}
+    transition={{
+      duration: duration,
+      repeat: Infinity,
+      delay: delay,
+      ease: "easeInOut",
+    }}
+  />
+);
+
+const AeroShards = () => {
   return (
-    <div className="fixed inset-0 z-[-1] overflow-hidden bg-background pointer-events-none">
-      <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-primary/10 blur-[120px] rounded-full" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/5 blur-[100px] rounded-full" />
+    <div className="fixed inset-0 z-0 bg-background overflow-hidden pointer-events-none">
+      {/* 1. Deep Ambient Glows (The "Vibe") */}
+      <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-primary/10 blur-[150px] rounded-full animate-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-secondary/5 blur-[130px] rounded-full" />
       
-      {[...Array(6)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute bg-white/5 border border-white/10 backdrop-blur-[2px]"
-          style={{
-            width: Math.random() * 250 + 100,
-            height: 2,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            rotate: `${Math.random() * 360}deg`,
-          }}
-          animate={{
-            y: [0, -40, 0],
-            opacity: [0.1, 0.3, 0.1],
-          }}
-          transition={{
-            duration: 8 + i * 2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      ))}
+      {/* 2. Procedural Shards */}
+      <Shard size={300} top={20} left={10} rotate={15} duration={10} delay={0} />
+      <Shard size={200} top={50} left={60} rotate={-25} duration={12} delay={2} />
+      <Shard size={400} top={80} left={20} rotate={10} duration={15} delay={1} />
+      <Shard size={250} top={10} left={70} rotate={45} duration={11} delay={3} />
+      <Shard size={150} top={40} left={30} rotate={-10} duration={9} delay={5} />
+      <Shard size={350} top={70} left={80} rotate={30} duration={14} delay={4} />
+
+      {/* 3. Subtle "Dust" overlay for texture */}
+      <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
     </div>
   );
 };
+
+export default AeroShards;
