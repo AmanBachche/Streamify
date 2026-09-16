@@ -1,16 +1,35 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Layout from "./components/layout";
-
-const Home = () => <h1 className="text-4xl font-bold">Good Evening</h1>;
-const Search = () => <h1 className="text-4xl font-bold">Search</h1>;
+import { useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import Layout from "./components/layout"; 
+import Home from "./pages/Home";
+import Auth from "./pages/Auth";
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route 
+          path="/login" 
+          element={
+            isAuthenticated ? 
+            <Navigate to="/" replace /> : 
+            <Auth onLogin={() => setIsAuthenticated(true)} />
+          } 
+        />
+
+        <Route 
+          path="/" 
+          element={
+            isAuthenticated ? 
+            <Layout /> : 
+            <Navigate to="/login" replace />
+          }
+        >
           <Route index element={<Home />} />
-          <Route path="search" element={<Search />} />
+          <Route path="search" element={<div className="p-10 text-4xl">Search Area</div>} />
+          <Route path="artists" element={<div className="p-10 text-4xl">Artists Area</div>} />
         </Route>
       </Routes>
     </BrowserRouter>
