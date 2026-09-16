@@ -3,8 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/layout"; // Matches your lowercase filename
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
-import Search from "./pages/Search"; // Make sure this file exists in src/pages
-import AlbumDetail from "./pages/AlbumDetail"; // Make sure this file exists in src/pages
+import Search from "./pages/Search";
+import Albums from "./pages/Albums";
+import AlbumDetail from "./pages/AlbumDetail";
+import Artists from "./pages/Artists";
+import ArtistDetail from "./pages/ArtistDetail";
 
 function App() {
   // Mock authentication state
@@ -23,7 +26,6 @@ function App() {
           } 
         />
 
-        {/* 2. Protected Dashboard Routes */}
         <Route 
           path="/" 
           element={
@@ -32,16 +34,12 @@ function App() {
             <Navigate to="/login" replace />
           }
         >
-          {/* Home Dashboard */}
           <Route index element={<Home />} />
-          
-          {/* Real Search Page */}
-          <Route path="search" element={<Search />} /> 
-          
-          {/* New Album Detail Page (clicking an album card takes you here) */}
-          <Route path="album/:id" element={<AlbumDetail />} /> 
-          
-          <Route path="artists" element={<div className="p-10 text-4xl font-black italic">Artists Area</div>} />
+          <Route path="search" element={<Search />} />
+          <Route path="albums" element={<Albums />} />
+          <Route path="album/:id" element={<AlbumDetail />} />
+          <Route path="artists" element={<Artists />} />
+          <Route path="artist/:id" element={<ArtistDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>
