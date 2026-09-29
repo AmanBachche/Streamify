@@ -1,11 +1,7 @@
-import { motion } from 'motion/react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Play, Heart, Check, MoreHorizontal, Clock } from 'lucide-react';
+import { Play, Heart, Check, MoreHorizontal } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 
 const ArtistDetail = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
   const { playTrack } = usePlayer();
 
   // Mock data for a specific artist

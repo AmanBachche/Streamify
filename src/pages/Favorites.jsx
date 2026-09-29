@@ -28,8 +28,6 @@ const Favorites = () => {
       >
         <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" /> Back
       </button>
-
-      {/* Hero Header */}
       <header className="flex flex-col md:flex-row items-end gap-8 p-8 rounded-[3rem] bg-gradient-to-br from-primary/40 via-accent/20 to-transparent border border-white/5 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full -mr-20 -mt-20" />
         

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Search as SearchIcon, Play, Mic2, Album } from 'lucide-react';
+import { Search as SearchIcon, Play } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 
 const Search = () => {

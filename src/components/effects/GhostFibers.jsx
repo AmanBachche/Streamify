@@ -9,13 +9,6 @@ const hexToRgb = hex => {
   return [parseInt(match[1], 16) / 255, parseInt(match[2], 16) / 255, parseInt(match[3], 16) / 255];
 };
 
-const setColor = (uniform, hex) => {
-  const color = hexToRgb(hex);
-  uniform.value[0] = color[0];
-  uniform.value[1] = color[1];
-  uniform.value[2] = color[2];
-};
-
 const vertex = `#version 300 es
 in vec2 position;
 void main() { gl_Position = vec4(position, 0.0, 1.0); }`;
@@ -95,8 +88,6 @@ void main() {
 }
 `;
 
-const contexts = new WeakMap();
-
 const GhostFibers = ({
   lineColor = '#140E35', glowColor = '#3437A0', speed = 0.2, scale = 2,
   rotation = 0, rotationSpeed = 0.25, layers = 4, waveAmplitude = 0.015,
@@ -104,7 +95,7 @@ const GhostFibers = ({
   twistFrequency = 5, twistSpeed = 1.2, lineFrequency = 5, lineSpacing = 2,
   lineSharpness = 16, glowFalloff = 10, glowIntensity = 1.6, brightness = 2,
   blueBoost = 1.25, vignette = 0.8, grain = 0.05, lightMode = false,
-  dpr = 1, fps = 60, paused = false, className = ''
+  dpr = 1, paused = false, className = ''
 }) => {
   const containerRef = useRef(null);
 
@@ -150,7 +141,7 @@ const GhostFibers = ({
     window.addEventListener('resize', setSize);
     setSize(); frameId = requestAnimationFrame(loop);
     return () => { cancelAnimationFrame(frameId); window.removeEventListener('resize', setSize); container.removeChild(canvas); };
-  }, [dpr, paused]);
+  }, [blueBoost, brightness, dpr, glowColor, glowFalloff, glowIntensity, grain, layers, layerSpeed, lightMode, lineColor, lineFrequency, lineSharpness, lineSpacing, paused, rotation, rotationSpeed, scale, speed, twist, twistFrequency, twistSpeed, vignette, waveAmplitude, waveFrequency, waveSpeed]);
 
   return <div ref={containerRef} className={`relative h-full w-full ${className}`} />;
 };

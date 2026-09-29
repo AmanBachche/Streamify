@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Heart, Clock3 } from 'lucide-react';

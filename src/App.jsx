@@ -8,6 +8,7 @@ import Albums from "./pages/Albums";
 import AlbumDetail from "./pages/AlbumDetail";
 import Artists from "./pages/Artists";
 import ArtistDetail from "./pages/ArtistDetail";
+import Favorites from "./pages/Favorites";
 
 function App() {
   // Mock authentication state
@@ -40,6 +41,7 @@ function App() {
           <Route path="album/:id" element={<AlbumDetail />} />
           <Route path="artists" element={<Artists />} />
           <Route path="artist/:id" element={<ArtistDetail />} />
+          <Route path="favorites" element={<Favorites />} />
         </Route>
       </Routes>
     </BrowserRouter>

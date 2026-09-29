@@ -1,4 +1,4 @@
-import { Home, Search, Mic2, Album, Heart, PlusCircle, Settings } from 'lucide-react';
+import { Home, Search, Mic2, Album, Heart, Settings } from 'lucide-react';
 import { motion } from 'motion/react';
 import { NavLink } from 'react-router-dom';
 
