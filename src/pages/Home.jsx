@@ -180,7 +180,7 @@ function Home() {
                     <Play size={14} fill="currentColor" />
                   </button>
                 </div>
-                <p className="text-lg font-bold">Night Signal</p>n
+                <p className="text-lg font-bold">Night Signal</p>
                 <p className="text-sm text-gray-400">Synthwave dreams</p>
               </div>
             );
