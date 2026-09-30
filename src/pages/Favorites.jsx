@@ -1,19 +1,40 @@
 import { motion } from 'motion/react';
 import { Heart, Play, Clock, MoreHorizontal, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { usePlayer } from '../context/PlayerContext';
-
-const LIKED_SONGS = [
-  { id: 'fav1', title: 'Blinding Lights', artist: 'The Weeknd', album: 'After Hours', duration: '3:22', cover: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=100' },
-  { id: 'fav2', title: 'Starboy', artist: 'The Weeknd', album: 'Starboy', duration: '3:50', cover: 'https://images.unsplash.com/photo-1619983081563-430f63602796?w=100' },
-  { id: 'fav3', title: 'Midnight City', artist: 'M83', album: 'Hurry Up, We\'re Dreaming', duration: '4:03', cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100' },
-  { id: 'fav4', title: 'Afterglow', artist: 'Rhea', album: 'Velvet Skyline', duration: '2:49', cover: 'https://images.unsplash.com/photo-1459749411177-042180ce673c?w=100' },
-  { id: 'fav5', title: 'Solar Drift', artist: 'Astra Lane', album: 'Nebula', duration: '2:56', cover: 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=100' },
-];
+import { fetchFavorites, updateStarred } from '../services/navidromeData';
+import { getAuth } from '../services/navidromeAuth';
 
 const Favorites = () => {
   const navigate = useNavigate();
   const { playTrack, currentTrack } = usePlayer();
+  const username = getAuth()?.username || 'Navidrome user';
+  const [likedSongs, setLikedSongs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const load = async () => {
+      try {
+        const data = await fetchFavorites();
+        if (isMounted) setLikedSongs(data);
+      } catch (error) {
+        console.error('Failed to load favorites from Navidrome:', error);
+        if (isMounted) setError(error.message || 'Unable to load favorites.');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <motion.div 
@@ -21,7 +42,6 @@ const Favorites = () => {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-8 pb-12"
     >
-      {/* Back Button */}
       <button 
         onClick={() => navigate(-1)} 
         className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4 group"
@@ -43,17 +63,17 @@ const Favorites = () => {
           <h1 className="text-8xl font-black tracking-tighter text-white italic leading-tight">Liked Songs</h1>
           <div className="flex items-center gap-3 mt-6">
             <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold border border-white/10">AZ</div>
-            <p className="text-sm font-bold text-white">Aman</p>
+            <p className="text-sm font-bold text-white">{username}</p>
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            <p className="text-sm font-bold text-gray-400">{LIKED_SONGS.length} tracks</p>
+            <p className="text-sm font-bold text-gray-400">{likedSongs.length} tracks</p>
           </div>
         </div>
       </header>
 
-      {/* Action Bar */}
       <div className="flex items-center gap-6 px-4">
         <button 
-          onClick={() => playTrack(LIKED_SONGS[0])}
+          onClick={() => likedSongs[0] && playTrack(likedSongs[0])}
+          disabled={!likedSongs.length}
           className="w-16 h-16 bg-primary rounded-full flex items-center justify-center shadow-xl shadow-primary/40 hover:scale-105 active:scale-95 transition-all"
         >
           <Play fill="white" size={32} className="ml-1" />
@@ -61,7 +81,6 @@ const Favorites = () => {
         <MoreHorizontal size={28} className="text-gray-500 cursor-pointer hover:text-white transition-colors" />
       </div>
 
-      {/* Songs Table */}
       <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl">
         <div className="grid grid-cols-[60px_1fr_1fr_100px_60px] gap-4 px-8 py-5 border-b border-white/5 text-gray-500 text-[10px] font-black uppercase tracking-[0.2em]">
           <span>#</span>
@@ -72,7 +91,7 @@ const Favorites = () => {
         </div>
 
         <div className="p-2">
-          {LIKED_SONGS.map((track, index) => {
+          {likedSongs.length ? likedSongs.map((track, index) => {
             const isPlaying = currentTrack?.id === track.id;
             return (
               <motion.div 
@@ -105,12 +124,24 @@ const Favorites = () => {
                   {track.duration}
                 </span>
 
-                <button className="flex justify-center text-primary">
+                <button
+                  className="flex justify-center text-primary"
+                  aria-label={`Remove ${track.title} from favorites`}
+                  onClick={async (event) => {
+                    event.stopPropagation();
+                    try {
+                      await updateStarred(track.id, false);
+                      setLikedSongs((songs) => songs.filter((song) => song.id !== track.id));
+                    } catch (starError) {
+                      setError(starError.message || 'Unable to remove favorite.');
+                    }
+                  }}
+                >
                   <Heart size={18} fill="currentColor" />
                 </button>
               </motion.div>
             );
-          })}
+          }) : <p className="p-6 text-gray-400">{error || (loading ? 'Loading favorites from Navidrome…' : 'No tracks are starred in Navidrome.')}</p>}
         </div>
       </div>
     </motion.div>

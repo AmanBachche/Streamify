@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/layout"; // Matches your lowercase filename
 import Home from "./pages/Home";
@@ -9,10 +9,15 @@ import AlbumDetail from "./pages/AlbumDetail";
 import Artists from "./pages/Artists";
 import ArtistDetail from "./pages/ArtistDetail";
 import Favorites from "./pages/Favorites";
+import { clearAuth, getAuth } from './services/navidromeAuth';
 
 function App() {
-  // Mock authentication state
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [auth, setAuth] = useState(() => getAuth());
+
+  const handleLogout = () => {
+    clearAuth();
+    setAuth(null);
+  };
 
   return (
     <BrowserRouter>
@@ -21,17 +26,17 @@ function App() {
         <Route 
           path="/login" 
           element={
-            isAuthenticated ? 
+            auth ?
             <Navigate to="/" replace /> : 
-            <Auth onLogin={() => setIsAuthenticated(true)} />
+            <Auth onLogin={setAuth} />
           } 
         />
 
         <Route 
           path="/" 
           element={
-            isAuthenticated ? 
-            <Layout /> : 
+            auth ?
+            <Layout onLogout={handleLogout} /> :
             <Navigate to="/login" replace />
           }
         >

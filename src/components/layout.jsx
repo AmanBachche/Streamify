@@ -3,7 +3,7 @@ import Sidebar from './layout/Sidebar';
 import GhostFibers from './effects/GhostFibers';
 import { GlowCursor } from './effects/GlowCursor';
 
-const Layout = () => {
+const Layout = ({ onLogout }) => {
   return (
     <div className="relative min-h-screen bg-background overflow-hidden text-white">
       <div className="fixed inset-0 z-0">
@@ -18,7 +18,7 @@ const Layout = () => {
       </div>
 
       <GlowCursor />
-      <Sidebar />
+      <Sidebar onLogout={onLogout} />
       <main className="lg:pl-72 min-h-screen relative z-10">
         <div className="p-10 max-w-[1600px] mx-auto">
           <Outlet />

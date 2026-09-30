@@ -1,19 +1,36 @@
-/* eslint-disable react-refresh/only-export-components */
 import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Heart, Clock3 } from 'lucide-react';
-
-export const albums = [
-  { id: 'f1', title: 'Neon Nights', artist: 'Luna Echo', year: '2024', songs: 12, cover: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=800' },
-  { id: 'f2', title: 'Midnight Echo', artist: 'Nova Bloom', year: '2023', songs: 10, cover: 'https://images.unsplash.com/photo-1619983081563-430f63602796?w=800' },
-  { id: 'f3', title: 'Solar Drift', artist: 'Astra Lane', year: '2025', songs: 9, cover: 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=800' },
-  { id: 'f4', title: 'Velvet Skyline', artist: 'Iris', year: '2022', songs: 14, cover: 'https://images.unsplash.com/photo-1514525253344-99a42d74081c?w=800' },
-  { id: 'f5', title: 'Afterglow', artist: 'Rhea', year: '2024', songs: 11, cover: 'https://images.unsplash.com/photo-1459749411177-042180ce673c?w=800' },
-  { id: 'f6', title: 'Moonlit Circuit', artist: 'The Vanta', year: '2021', songs: 8, cover: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800' },
-];
+import { fetchAlbums as fetchNavidromeAlbums, updateStarred } from '../services/navidromeData';
 
 const Albums = () => {
   const navigate = useNavigate();
+  const [albums, setAlbums] = useState([]);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const load = async () => {
+      try {
+        const data = await fetchNavidromeAlbums();
+        if (isMounted) setAlbums(data);
+      } catch (error) {
+        console.error('Failed to load albums from Navidrome:', error);
+        if (isMounted) setError(error.message || 'Unable to load albums.');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="space-y-8 pb-12">
@@ -23,7 +40,7 @@ const Albums = () => {
       </header>
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {albums.map((album) => (
+        {albums.length ? albums.map((album) => (
           <motion.article
             key={album.id}
             whileHover={{ y: -6 }}
@@ -49,8 +66,21 @@ const Albums = () => {
                 <h2 className="truncate text-xl font-black text-white">{album.title}</h2>
                 <p className="mt-1 text-sm text-gray-400">{album.artist}</p>
               </div>
-              <button className="rounded-full border border-white/10 bg-white/5 p-2 text-gray-300 transition hover:bg-white/10 hover:text-white">
-                <Heart size={16} />
+              <button
+                aria-label={`${album.starred ? 'Remove' : 'Add'} ${album.title} ${album.starred ? 'from' : 'to'} favorites`}
+                onClick={async (event) => {
+                    event.stopPropagation();
+                    const nextStarred = !album.starred;
+                    try {
+                      await updateStarred(album.id, nextStarred, 'album');
+                      setAlbums((items) => items.map((item) => item.id === album.id ? { ...item, starred: nextStarred } : item));
+                    } catch (starError) {
+                      setError(starError.message || 'Unable to update album favorite.');
+                    }
+                  }}
+                className="rounded-full border border-white/10 bg-white/5 p-2 text-gray-300 transition hover:bg-white/10 hover:text-white"
+              >
+                <Heart size={16} fill={album.starred ? 'currentColor' : 'none'} />
               </button>
             </div>
 
@@ -61,7 +91,7 @@ const Albums = () => {
               </span>
             </div>
           </motion.article>
-        ))}
+        )) : <p className="text-gray-400">{error || (loading ? 'Loading albums from Navidrome…' : 'No albums found in Navidrome.')}</p>}
       </div>
     </div>
   );

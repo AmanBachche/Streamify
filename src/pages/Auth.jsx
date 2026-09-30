@@ -1,17 +1,41 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Mail, Lock, User, ArrowRight, Music } from 'lucide-react'; 
+import { motion } from 'motion/react';
+import { Lock, User, ArrowRight, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import GhostFibers from '../components/effects/GhostFibers';
+import { createAuth, saveAuth, clearAuth, NAVIDROME_URL } from '../services/navidromeAuth';
+import { ping } from '../services/navidromeApi';
 
 const Auth = ({ onLogin }) => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [serverUrl, setServerUrl] = useState(NAVIDROME_URL);
+  const [error, setError] = useState('');
+  const [isConnecting, setIsConnecting] = useState(false);
   const navigate = useNavigate();
 
-  const handleAuth = (e) => {
+  const handleAuth = async (e) => {
     e.preventDefault();
-    if (onLogin) onLogin(); 
-    navigate('/');
+    setError('');
+    setIsConnecting(true);
+    const auth = createAuth(username, password, serverUrl);
+
+    try {
+      saveAuth(auth);
+      await ping();
+      onLogin(auth);
+      navigate('/', { replace: true });
+    } catch (connectionError) {
+      clearAuth();
+      const message = connectionError.message || '';
+      setError(
+        connectionError instanceof TypeError || /failed to fetch|networkerror/i.test(message)
+          ? 'Cannot reach Navidrome. Check the public server address, HTTPS, and Navidrome CORS settings.'
+          : message || 'Could not connect to Navidrome.'
+      );
+    } finally {
+      setIsConnecting(false);
+    }
   };
 
   return (
@@ -36,87 +60,60 @@ const Auth = ({ onLogin }) => {
 
         {/* Card */}
         <div className="bg-white/5 backdrop-blur-2xl p-8 rounded-[2.5rem] border border-white/10 shadow-2xl">
-          {/* Toggle Tabs */}
-          <div className="flex gap-4 mb-8 p-1 bg-white/5 rounded-2xl">
-            <button 
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${isLogin ? 'bg-primary text-white shadow-lg' : 'text-gray-400'}`}
-            >
-              Login
-            </button>
-            <button 
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${!isLogin ? 'bg-primary text-white shadow-lg' : 'text-gray-400'}`}
-            >
-              Sign Up
-            </button>
-          </div>
-
           {/* Form */}
           <form onSubmit={handleAuth} className="space-y-4">
-            <AnimatePresence mode="wait">
-              {!isLogin && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="relative"
-                >
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                  <input 
-                    type="text" 
-                    placeholder="Full Name" 
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-primary transition-all" 
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-              <input 
-                type="email" 
-                placeholder="Email Address" 
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-primary transition-all" 
-                required 
+              <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+              <input
+                type="url"
+                placeholder="https://music.example.com"
+                autoComplete="url"
+                value={serverUrl}
+                onChange={(event) => setServerUrl(event.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-primary transition-all"
+                required
               />
             </div>
-            
+
+            <div className="relative">
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+              <input
+                type="text"
+                placeholder="Navidrome username"
+                autoComplete="username"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-primary transition-all"
+                required
+              />
+            </div>
+
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
               <input 
                 type="password" 
-                placeholder="Password" 
+                placeholder="Navidrome password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-primary transition-all" 
                 required 
               />
             </div>
 
+            {error && <p role="alert" className="rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
+
             <button 
               type="submit" 
+              disabled={isConnecting}
               className="w-full bg-primary text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-[0.98] transition-all"
             >
-              {isLogin ? 'Sign In' : 'Create Account'}
+              {isConnecting ? 'Connecting…' : 'Connect to Navidrome'}
               <ArrowRight size={18} />
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="mt-8 flex items-center gap-4">
-            <div className="h-[1px] flex-1 bg-white/10" />
-            <span className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Social Login</span>
-            <div className="h-[1px] flex-1 bg-white/10" />
-          </div>
-
-          {/* Social Buttons */}
-          <div className="flex gap-4 mt-6">
-            <button className="flex-1 flex items-center justify-center py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
-              <Music size={20} className="text-white" />
-            </button>
-            <button className="flex-1 flex items-center justify-center py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
-              <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
-            </button>
-          </div>
+          <p className="mt-5 text-center text-xs text-gray-500">Enter the public Navidrome address (HTTPS for remote access), then use an account created on that server.</p>
         </div>
       </motion.div>
     </div>

@@ -1,17 +1,35 @@
 import { motion } from 'motion/react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const ARTISTS = [
-  { id: '1', name: 'The Weeknd', followers: '85M', image: 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=400' },
-  { id: '2', name: 'Lorde', followers: '12M', image: 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=400' },
-  { id: '3', name: 'Tyler, The Creator', followers: '22M', image: 'https://images.unsplash.com/photo-1514525253344-99a42d74081c?w=400' },
-  { id: '4', name: 'Tame Impala', followers: '18M', image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400' },
-  { id: '5', name: 'Dua Lipa', followers: '65M', image: 'https://images.unsplash.com/photo-1459749411177-042180ce673c?w=400' },
-  { id: '6', name: 'M83', followers: '5M', image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400' },
-];
+import { fetchArtists } from '../services/navidromeData';
 
 const Artists = () => {
   const navigate = useNavigate();
+  const [artists, setArtists] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const load = async () => {
+      try {
+        const data = await fetchArtists();
+        if (isMounted) setArtists(data);
+      } catch (error) {
+        console.error('Failed to load artists from Navidrome:', error);
+        if (isMounted) setError(error.message || 'Unable to load artists.');
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="space-y-10">
@@ -21,7 +39,7 @@ const Artists = () => {
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-8">
-        {ARTISTS.map((artist) => (
+        {artists.length ? artists.map((artist) => (
           <motion.div
             key={artist.id}
             whileHover={{ y: -10 }}
@@ -37,9 +55,9 @@ const Artists = () => {
               <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity -z-10" />
             </div>
             <h3 className="text-lg font-bold text-white group-hover:text-primary transition-colors">{artist.name}</h3>
-            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">{artist.followers} Followers</p>
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">{artist.playCount} plays</p>
           </motion.div>
-        ))}
+        )) : <p className="text-gray-400">{error || (loading ? 'Loading artists from Navidrome…' : 'No artists found in Navidrome.')}</p>}
       </div>
     </div>
   );
